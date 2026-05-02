@@ -14,6 +14,7 @@
 - ✅ **答對+1，答錯-1** — 計分系統
 - 📊 **排行榜** — 分數自動提交到 Google Sheets
 - 📱 **響應式設計** — 支援桌面和手機
+- 🗂️ **18種題目類型** — 涵蓋算術、統計、排列組合、複數等
 
 ---
 
@@ -35,14 +36,14 @@
 
 ## 🚀 快速開始
 
-### 方式一：直接使用（內置50題示範）
+### 方式一：直接使用（內置221題示範）
 
 訪問 https://ai-lish.github.io/calculator-race/ 即可遊玩（使用內置示範題目，無需設定）
 
 ### 方式二：使用自己的 Google Sheet 題目庫
 
 1. 按照 [docs/SETUP.md](docs/SETUP.md) 建立 Google Sheet 和 Apps Script
-2. 修改 `frontend/index.html` 頂部的 `CONFIG` 物件
+2. 修改 `docs/index.html` 頂部的 `CONFIG` 物件
 3. 部署到 GitHub Pages
 
 ---
@@ -51,11 +52,15 @@
 
 ```
 calculator-race/
-├── index.html           # 主遊戲頁面（包含完整代碼）
 ├── docs/
-│   └── SETUP.md         # 詳細設定指南
+│   ├── index.html              # 主遊戲頁面
+│   ├── SETUP.md               # 詳細設定指南
+│   ├── PLANNING.md            # 規劃文件
+│   └── data/
+│       ├── questions-full.csv   # 完整題庫 (221題)
+│       └── questions-sample.csv # 示範題庫 (50題)
 ├── backend/
-│   └── apps-script.js   # Google Apps Script 後端代碼
+│   └── apps-script.js         # Google Apps Script 後端代碼
 └── README.md
 ```
 
@@ -67,18 +72,22 @@ Google Sheet `Questions` 工作表格式：
 
 | id | expression | answer_3sf | answer_exact | difficulty | topics |
 |----|-----------|------------|--------------|------------|--------|
-| calc-001 | 24/3 | 8 | 8 | Easy | arithmetic |
-| calc-021 | sqrt(2) | 1.41 | sqrt(2) | Medium | root |
-| calc-041 | pi^2 | 9.87 | pi^2 | Hard | pi |
+| E001 | 12+8 | 20 | 20 | Easy | arithmetic |
+| M001 | sin(30) | 0.5 | 0.5 | Medium | trig |
+| H001 | 5nCr2 | 10 | 10 | Hard | combination |
 
 **支持的算式格式：**
 - 基本運算：`+, -, *, /`
 - 冪運算：`^`, `**`
 - 根號：`sqrt(x)`
-- 三角函數：`sin(), cos(), tan(), arctan(), arcsin()`（使用度制）
+- 三角函數：`sin(), cos(), tan(), arctan(), arcsin()`（使用度制 DEG mode）
 - 對數：`log10(), ln()`
 - 常數：`pi`, `e`
 - 科學記數：`1.23e+05`
+- 排列組合：`nPr, nCr`（需要查找表或計算）
+- 統計：`mean()` 平均數
+- 複數：`abs(a+bi)` 模
+- 進制：`bin(), hex(), dec()` 轉換
 
 ---
 
@@ -98,6 +107,19 @@ const CONFIG = {
 
 ---
 
+## 📊 題庫統計
+
+| 難度 | 題數 |
+|------|------|
+| Easy | 97 |
+| Medium | 56 |
+| Hard | 63 |
+| **總計** | **221** |
+
+**18種題目類型：** 運算、百分比、分數、冪、根號、括號、科學記數、三角函數、對數、π/e常數、排列、組合、統計、複數、反三角、進制轉換、二次方程、複利息
+
+---
+
 ## 📝 授權
 
-MIT License — 免費使用於教育目的
+免費使用於教育目的。
