@@ -685,6 +685,36 @@ function updateTimerDisplay() {
   bar.classList.toggle('timer-warning', timeLeft <= 10);
 }
 
+/**
+ * 3位有效數字比較函數
+ * 確保用戶輸入與標準答案的3sf值匹配
+ */
+function to3SF(num) {
+  if (typeof num !== 'number' || isNaN(num)) return num;
+  if (num === 0) return 0;
+  if (!Number.isFinite(num)) return num;
+  
+  // 計算3sf後的值
+  const absNum = Math.abs(num);
+  let result;
+  
+  if (absNum >= 100) {
+    // ≥100: 四捨五入至小數點前1位
+    result = Math.round(absNum);
+  } else if (absNum >= 10) {
+    // 10-100: 四捨五入至小數點後2位
+    result = Math.round(absNum * 100) / 100;
+  } else if (absNum >= 1) {
+    // 1-10: 四捨五入至小數點後3位
+    result = Math.round(absNum * 1000) / 1000;
+  } else {
+    // <1: 四捨五入至小數點後3位
+    result = Math.round(absNum * 1000) / 1000;
+  }
+  
+  return num < 0 ? -result : result;
+}
+
 function submitAns() {
   if (answered || !currentQ) return;
   answered = true;
@@ -693,15 +723,22 @@ function submitAns() {
   const input = document.getElementById('calcInput').value.trim();
   if (!input) { answered = false; return; }
 
+  // 解析用戶輸入（移除逗號）
   const userAns = parseFloat(input.replace(/,/g, ''));
+  // 使用CSV中的3sf答案（已預先計算好）
   const correctAns = currentQ.answer;
 
   if (isNaN(userAns) || isNaN(correctAns)) {
     wrongCount++;
     showResult(false, correctAns);
   } else {
-    const tolerance = Math.abs(correctAns * TOLERANCE);
-    const isCorrect = Math.abs(userAns - correctAns) <= tolerance;
+    // 將兩個值都轉換為3sf後比較
+    // 使用0.5%容許誤差（考慮計算機顯示位數差異）
+    const correct3sf = to3SF(correctAns);
+    const user3sf = to3SF(userAns);
+    const tolerance = Math.max(Math.abs(correct3sf) * 0.005, 0.001);
+    const isCorrect = Math.abs(user3sf - correct3sf) <= tolerance;
+    
     if (isCorrect) {
       correctCount++;
       showResult(true);
@@ -738,10 +775,18 @@ function showResult(correct, correctAns) {
 function formatAnswer(ans) {
   if (typeof ans !== 'number' || isNaN(ans)) return String(ans);
   if (Number.isInteger(ans)) return String(ans);
-  // Use 3 significant figures for display
-  if (Math.abs(ans) >= 1000) return ans.toPrecision(3);
-  if (Math.abs(ans) < 0.001) return ans.toExponential(3);
-  return parseFloat(ans.toFixed(3)).toString();
+  
+  // 使用to3SF函數確保一致的3sf顯示
+  const threeSf = to3SF(ans);
+  
+  // 格式化顯示
+  if (Math.abs(threeSf) >= 1000) {
+    return threeSf.toLocaleString('en-US', { maximumFractionDigits: 1 });
+  }
+  if (Math.abs(threeSf) < 0.01) {
+    return threeSf.toExponential(3);
+  }
+  return parseFloat(threeSf.toFixed(3)).toString();
 }
 
 function typeKey(k) {
