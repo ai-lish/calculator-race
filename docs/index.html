@@ -483,7 +483,7 @@ async function loadQuestions() {
               id: row[0] || '',
               expression: row[1] || '',
               answer: parseFloat(row[2]),
-              answerRaw: (row[2] || '').trim(),
+              answerRaw: (row[2] ?? '').trim(),
               difficulty: (row[3] || 'Easy').trim(),
               topics: row[4] || '',
             };
@@ -715,10 +715,9 @@ function submitAns() {
   const userAns = parseFloat(input.replace(/,/g, ''));
   // 使用CSV中的3sf答案（已預先計算好）
   const correctAns = currentQ.answer;
-  const correctAnsRaw = currentQ.answerRaw !== undefined
-    ? currentQ.answerRaw
-    : String(correctAns);
-  const isNumericAnswer = !isNaN(parseFloat(correctAnsRaw)) && correctAnsRaw !== '';
+  const correctAnsRaw = currentQ.answerRaw ?? String(correctAns);
+  // 嚴格數字檢查：整個字串必須是有效數字（整數、小數或科學記數）
+  const isNumericAnswer = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(correctAnsRaw);
 
   if (!isNumericAnswer) {
     // 非數字答案（例如十六進制字母 FF）：直接比較字串（不區分大小寫）
