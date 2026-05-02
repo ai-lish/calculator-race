@@ -552,9 +552,8 @@ function updateDifficultyTabs() {
 function formatExpression(expr) {
   if (!expr) return '';
   let latex = String(expr)
-    // Scientific notation: 1.33e+03 → 1.33×10^3
-    .replace(/(\d+\.?\d*)e\+(\d+)/gi, '$1\\times10^{$2}')
-    .replace(/(\d+\.?\d*)e-(\d+)/gi, '$1\\times10^{-$2}')
+    // Fraction: 7/12 → \frac{7}{12}
+    .replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}')
     // Powers: 2**5 or 2^5 → 2^5
     .replace(/\*\*/g, '^')
     // Multiplication: * → ×
