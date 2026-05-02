@@ -482,7 +482,8 @@ async function loadQuestions() {
             return {
               id: row[0] || '',
               expression: row[1] || '',
-              answer: parseFloat(row[2]) || 0,
+              answer: parseFloat(row[2]),
+              answerRaw: (row[2] || '').trim(),
               difficulty: (row[3] || 'Easy').trim(),
               topics: row[4] || '',
             };
@@ -570,6 +571,7 @@ function formatExpression(expr) {
     .replace(/tan\(/g, '\\tan(')
     .replace(/arctan\(/g, '\\arctan(')
     .replace(/arcsin\(/g, '\\arcsin(')
+    .replace(/arccos\(/g, '\\arccos(')
     // pi → π
     .replace(/\bpi\b/g, '\\pi')
     // e (Euler's number) — surrounded by operators
@@ -692,25 +694,12 @@ function to3SF(num) {
   if (typeof num !== 'number' || isNaN(num)) return num;
   if (num === 0) return 0;
   if (!Number.isFinite(num)) return num;
-  
-  // 計算3sf後的值
+
   const absNum = Math.abs(num);
-  let result;
-  
-  if (absNum >= 100) {
-    // ≥100: 四捨五入至小數點前1位
-    result = Math.round(absNum);
-  } else if (absNum >= 10) {
-    // 10-100: 四捨五入至小數點後2位
-    result = Math.round(absNum * 100) / 100;
-  } else if (absNum >= 1) {
-    // 1-10: 四捨五入至小數點後3位
-    result = Math.round(absNum * 1000) / 1000;
-  } else {
-    // <1: 四捨五入至小數點後3位
-    result = Math.round(absNum * 1000) / 1000;
-  }
-  
+  const magnitude = Math.floor(Math.log10(absNum));
+  const factor = Math.pow(10, 2 - magnitude); // 2 = 3 sig figs - 1
+  const result = Math.round(absNum * factor) / factor;
+
   return num < 0 ? -result : result;
 }
 
@@ -726,8 +715,22 @@ function submitAns() {
   const userAns = parseFloat(input.replace(/,/g, ''));
   // 使用CSV中的3sf答案（已預先計算好）
   const correctAns = currentQ.answer;
+  const correctAnsRaw = currentQ.answerRaw !== undefined
+    ? currentQ.answerRaw
+    : String(correctAns);
+  const isNumericAnswer = !isNaN(parseFloat(correctAnsRaw)) && correctAnsRaw !== '';
 
-  if (isNaN(userAns) || isNaN(correctAns)) {
+  if (!isNumericAnswer) {
+    // 非數字答案（例如十六進制字母 FF）：直接比較字串（不區分大小寫）
+    const isCorrect = input.toLowerCase() === correctAnsRaw.toLowerCase();
+    if (isCorrect) {
+      correctCount++;
+      showResult(true);
+    } else {
+      wrongCount++;
+      showResult(false, correctAnsRaw);
+    }
+  } else if (isNaN(userAns) || isNaN(correctAns)) {
     wrongCount++;
     showResult(false, correctAns);
   } else {
@@ -999,7 +1002,7 @@ document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' && e.target.id !== 'calcInput') return;
 
   if (e.key === 'Enter' && !answered) submitAns();
-  if (/^[0-9.]$/.test(e.key)) typeKey(e.key);
+  if (/^[0-9.A-Fa-f]$/.test(e.key)) typeKey(e.key);
   if (e.key === 'Backspace') { e.preventDefault(); typeKey('del'); }
   if (e.key === 'Escape') typeKey('clear');
   if (e.key === '-' && !e.shiftKey) { e.preventDefault(); typeKey('-'); }
