@@ -478,14 +478,13 @@ async function loadQuestions() {
         if (parsed.length > 1) {
           // Skip header row
           allQuestions = parsed.slice(1).map(row => {
-            if (row.length < 5) return null;
+            if (row.length < 4) return null;
             return {
               id: row[0] || '',
               expression: row[1] || '',
               answer: parseFloat(row[2]) || 0,
-              answerExact: row[3] || '',
-              difficulty: row[4] || 'Easy',
-              topics: row[5] || '',
+              difficulty: (row[3] || 'Easy').trim(),
+              topics: row[4] || '',
             };
           }).filter(Boolean);
           questions = allQuestions;
